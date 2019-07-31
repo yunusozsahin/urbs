@@ -98,8 +98,7 @@ def plot(prob, stf, com, sit, dt, timesteps, timesteps_plot,
         # wrap single site in 1-element list for consistent behaviour
         sit = [sit]
 
-    (created, consumed, stored, imported, exported,
-     dsm, voltage_angle) = get_timeseries(prob, stf, com, sit, timesteps)
+    (imported, exported, voltage_angle) = get_timeseries(prob, stf, com, sit, timesteps)
 
     # move retrieved/stored storage timeseries to created/consumed and
     # rename storage columns back to 'storage' for color mapping

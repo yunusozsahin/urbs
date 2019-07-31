@@ -27,9 +27,9 @@ def report(instance, filename, report_tuples=None, report_sites_name={}):
 
         # write constants to spreadsheet
         costs.to_frame().to_excel(writer, 'Costs')
-        cpro.to_excel(writer, 'Process caps')
-        ctra.to_excel(writer, 'Transmission caps')
-        csto.to_excel(writer, 'Storage caps')
+        #cpro.to_excel(writer, 'Process caps')
+        #tra.to_excel(writer, 'Transmission caps')
+        #csto.to_excel(writer, 'Storage caps')
 
         # initialize timeseries tableaus
         energies = []
@@ -53,32 +53,25 @@ def report(instance, filename, report_tuples=None, report_sites_name={}):
                 report_sites_name[sit] = str(sit)
 
             for lv in help_sit:
-                (created, consumed, stored, imported, exported,
-                 dsm, voltage_angle) = get_timeseries(instance, stf, com, lv)
+                (imported, exported, voltage_angle) = get_timeseries(instance, stf, com, lv)
 
-                overprod = pd.DataFrame(
-                    columns=['Overproduction'],
-                    data=created.sum(axis=1) - consumed.sum(axis=1) +
-                    imported.sum(axis=1) - exported.sum(axis=1) +
-                    stored['Retrieved'] - stored['Stored'])
+                # overprod = pd.DataFrame(
+                #     columns=['Overproduction'],
+                #     data=created.sum(axis=1) - consumed.sum(axis=1) +
+                #     imported.sum(axis=1) - exported.sum(axis=1) +
+                #     stored['Retrieved'] - stored['Stored'])
 
                 tableau = pd.concat(
-                    [created, consumed, stored, imported, exported, overprod,
-                     dsm, voltage_angle],
+                    [imported, exported, voltage_angle],
                     axis=1,
-                    keys=['Created', 'Consumed', 'Storage', 'Import from',
-                          'Export to', 'Balance', 'DSM', 'Voltage Angle'])
+                    keys=['Import from',
+                          'Export to', 'Voltage Angle'])
                 help_ts[(stf, lv, com)] = tableau.copy()
 
                 # timeseries sums
-                help_sums = pd.concat([created.sum(), consumed.sum(),
-                                       stored.sum().drop('Level'),
-                                       imported.sum(), exported.sum(),
-                                       overprod.sum(), dsm.sum()],
+                help_sums = pd.concat([imported.sum(), exported.sum()],
                                       axis=0,
-                                      keys=['Created', 'Consumed', 'Storage',
-                                            'Import', 'Export', 'Balance',
-                                            'DSM'])
+                                      keys=['Import', 'Export'])
                 try:
                     timeseries[(stf, report_sites_name[sit], com)] = \
                         timeseries[(stf, report_sites_name[sit], com)].add(
@@ -90,13 +83,9 @@ def report(instance, filename, report_tuples=None, report_sites_name={}):
                     sums = help_sums
 
             # timeseries sums
-            sums = pd.concat([created.sum(), consumed.sum(),
-                              stored.sum().drop('Level'),
-                              imported.sum(), exported.sum(), overprod.sum(),
-                              dsm.sum()],
+            sums = pd.concat([imported.sum(), exported.sum()],
                              axis=0,
-                             keys=['Created', 'Consumed', 'Storage', 'Import',
-                                   'Export', 'Balance', 'DSM'])
+                             keys=['Import', 'Export'])
             energies.append(sums.to_frame("{}.{}.{}".format(stf, sit, com)))
 
         # write timeseries data (if any)
